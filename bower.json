@@ -1,0 +1,34 @@
+{
+  "name": "quick-load-more",
+  "version": "0.0.0",
+  "authors": [
+    "Yasa Akbulut <yasakbulut@gmail.com>"
+  ],
+  "description": "A data store that prefetches items, to minimize user wait times on \"load more\"-type scenarios.",
+  "main": "quick-load-more.js",
+  "moduleType": [
+    "node"
+  ],
+  "keywords": [
+    "data",
+    "store",
+    "load",
+    "more"
+  ],
+  "license": "MIT",
+  "homepage": "http://yasa.gs/stuff/quick-load-more",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~1.9.0",
+  },
+  "devDependencies": {
+    "jquery-mockjax": "~1.6.1"
+  }
+}
