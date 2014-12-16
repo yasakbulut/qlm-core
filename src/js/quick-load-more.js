@@ -228,7 +228,7 @@ var QLM = (function($){
                         result.resolve();
                         return result;
                     }
-                }
+                };
             };            
         return {
             get: get,
