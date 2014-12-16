@@ -17,13 +17,19 @@ describe('QLM getting-related functionality', function() {
   	})).toBe(serviceURL+'?start=0');
   	expect(qlm.__getURL({
   		'start': 0,
-  		'offset': 25
-  	})).toBe(serviceURL+'?start=0&offset=25');
+  		'count': 25
+  	})).toBe(serviceURL+'?start=0&count=25');
   	expect(qlm.__getURL({
   		'start': 0,
-  		'offset': 25,
+  		'count': 25,
   		'tags': ['cool', 'awesome', 'rockin']
-  	})).toBe(serviceURL+'?start=0&offset=25&tags=cool&tags=awesome&tags=rockin');
+  	})).toBe(serviceURL+'?start=0&count=25&tags=cool&tags=awesome&tags=rockin');
+    expect(qlm.__getURL({
+      'tags': ['cool', 'awesome', 'rockin']
+    }, {
+      'start': 0,
+      'count': 25
+    })).toBe(serviceURL+'?tags=cool&tags=awesome&tags=rockin&start=0&count=25');
   });
 
   it('calls the endpoint on initial get()', function() {
@@ -35,8 +41,10 @@ describe('QLM getting-related functionality', function() {
     var qlm = new QLM({
       serviceURL: serviceURL,
       lowItemThreshold: 45,
-      parameterState:{
-        count: 50
+      paginator:{
+        state: {
+          count: 50,
+        }
       }
     });
     qlm.get(3).then(function(){
@@ -68,8 +76,10 @@ describe('QLM getting-related functionality', function() {
     var qlm = new QLM({
       serviceURL: serviceURL,
       lowItemThreshold: 5,
-      parameterState: {
-        count: 5
+      paginator: {
+        state: {
+          count: 5  
+        }
       }
     });
     qlm.get(5).then(function(){
@@ -92,8 +102,10 @@ describe('QLM getting-related functionality', function() {
     var qlm = new QLM({
       serviceURL: serviceURL,
       lowItemThreshold: 5,
-      parameterState: {
-        count: 5
+      paginator: {
+        state: {
+          count: 5
+        }
       }
     });
     qlm.get(5).then(function(){
@@ -105,11 +117,37 @@ describe('QLM getting-related functionality', function() {
     }).always(done);
   });
 
+  it('triggers loadStarted on load start', function(done){
+    $(document).on('qlm.loadStarted', function(){
+      expect(true).toBe(true);
+      done();
+    });
+    qlm.get(1);
+  });
+  it('triggers loadFinished on load finish', function(done){
+    $(document).on('qlm.loadFinished', function(){
+      expect(true).toBe(true);
+      done();
+    });
+    qlm.get(1);
+  });
+  it('triggers exhausted on item exhaustion', function(done){
+    $(document).on('qlm.exhausted', function(){
+      expect(true).toBe(true);
+      done();
+    });
+    $.mockjax.clear();
+    setupMockjax(30);
+    qlm.get(30).then(function(){
+      qlm.get(10);
+    });
+  });
 
-  function setupMockjax(){
 
+  function setupMockjax(itemCount){
+    itemCount = itemCount || 150;
      var items = [];
-    for(var i = 0; i < 150; i++){
+    for(var i = 0; i < itemCount; i++){
       items.push({'title': 'title '+(i+1)});
     }
 
@@ -120,6 +158,7 @@ describe('QLM getting-related functionality', function() {
         var start = parseInt(settings.urlParams.start);
         var count = parseInt(settings.urlParams.count);
         this.responseText = {
+          exhausted: start > items.length,
           items: items.slice(start, Math.min(start+count, items.length-1))
         };
        } 

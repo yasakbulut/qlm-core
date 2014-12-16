@@ -64,14 +64,6 @@ var QLM = (function($){
         // The default config object, to be extended with the config the user provides
         var config = {
             lowItemThreshold: 20,
-            responseItemExtractor: function(response){
-                return response.items;
-            },
-            /* key field names */
-            fieldNames: {
-                start: 'start',
-                count: 'count'
-            },
             event:{
                 namespace: 'qlm',
                 names: {
@@ -81,42 +73,63 @@ var QLM = (function($){
                     exhausted: 'exhausted'
                 }
             },
-            parameterState: {} 
+            paginator: {
+                state: {
+                    start: 0,
+                    count: 50
+                },
+                next: function(currentState){
+                    // return new paginator.state
+                    currentState.start += currentState.count;
+                    return currentState;
+                }
+            },
+            isServerExhausted: function(response){
+                // return true/false
+                return response.exhausted;
+            },
+            extractItems: function(response){
+                // return items from response
+                return response.items;
+            }
+
         };
 
 
         // add or override using user values
         $.extend(true, config, customConfig);
         
-        // Supply default parameters for parameters with dynamic names
-        var defaultParameterState = {};
-        defaultParameterState[config.fieldNames.start] = 0;
-        defaultParameterState[config.fieldNames.count] = 20;
-        $.extend(true, defaultParameterState, customConfig.parameterState);
-        config.parameterState = defaultParameterState;
 
         // The item storage
         var localCache = [],
 
+            queryParameters = {},
+
+            paginator = config.paginator,
+            isServerExhausted = config.isServerExhausted,
+            extractItems = config.extractItems,
+
             // The promise object related to the ongoing server request (if any)
             ongoingRequestPromise = null,
-
-            // Shorthand name for item extractor function
-            getItemsFromResponse = config.responseItemExtractor,
 
             // Issues a GET request to the server, to populate the local cache.
             populateLocalCache = function(){
                 return $.ajax({
-                    url: getURL(config.parameterState),
+                    url: getURL(queryParameters, paginator.state),
                     type: "GET"
                 }).then(function(response){
                     ongoingRequestPromise = null;
                     // extract items
-                    var items = getItemsFromResponse(response);
+                    var items = extractItems(response);
                     // append the items to the array
                     Array.prototype.push.apply(localCache, items);
                     // increase the start field
-                    config.parameterState[config.fieldNames.start] += items.length;
+                    paginator.state = paginator.next(paginator.state);
+
+                    if(isServerExhausted(response)){
+                        triggerEvent('exhausted');
+                    }
+
                     return items.length;
                 }, function(error){
                     ongoingRequestPromise = null;
@@ -127,16 +140,18 @@ var QLM = (function($){
             // Constructs an URL from the current state. For each `state`, 
             // query parameters in the form of`key=value` will be generated from
             // `key: value` pairs in the `state` object.
-            getURL = function(state){
+            getURL = function(parameters, paginatorState){
                 var queryParameters = [];
-                $.each(state, function(parameterName, value){
-                    var queryParameter = '';
-                    if($.isArray(value)){
-                        queryParameter = $.map(value, function(v){ return parameterName + '=' + v; }).join('&');
-                    }else{
-                        queryParameter = parameterName + '=' + value;
-                    }
-                    queryParameters.push(queryParameter);
+                $.each(arguments, function(index, argument){
+                    $.each(argument, function(parameterName, value){
+                        var queryParameter = '';
+                        if($.isArray(value)){
+                            queryParameter = $.map(value, function(v){ return parameterName + '=' + v; }).join('&');
+                        }else{
+                            queryParameter = parameterName + '=' + value;
+                        }
+                        queryParameters.push(queryParameter);
+                    });
                 });
                 return config.serviceURL + '?' + queryParameters.join('&');
             },
@@ -161,17 +176,10 @@ var QLM = (function($){
                 if(localCache.length < numberOfItems){
                     triggerEvent('loadStarted');
                     ongoingRequestPromise = populateLocalCache().then(function(retrievedItemCount){
+                        // TODO: control item count and get more if needed, stop on zero.
                         // get and remove items from the local cache, starting from the beginning 
                         var items = localCache.splice(0, numberOfItems);
-                        
-                        if(retrievedItemCount <= numberOfItems && localCache.length === 0){
-                            // with the local cache being empty, returning less than (or equal to) 
-                            // the number of items requested indicates that we used up all
-                            // the elements server-side.
-                            triggerEvent('exhausted');
-                        }else{
-                            triggerEvent('loadFinished');
-                        }
+                        triggerEvent('loadFinished');
                         return items;
                     }, function(error){
                         triggerEvent('loadFinished');
@@ -198,9 +206,9 @@ var QLM = (function($){
             },
             // trigger an event with the given name
             triggerEvent = function(event){
-                var eventName = config.event.namespace + config.event.names[event];
+                var eventName = config.event.namespace + '.' + config.event.names[event];
+                $(document).trigger(eventName);
             };
-
         return {
             get: get,
             __getURL: getURL,
