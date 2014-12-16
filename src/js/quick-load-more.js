@@ -174,8 +174,16 @@ var QLM = (function($){
     
                 // if the number of items in the local cache is insufficent 
                 if(localCache.length < numberOfItems){
+                    var chainer = createPromiseChainer({
+                        predicate: function(){
+                            return localCache.length < numberOfItems;
+                        },
+                        promiseFn: populateLocalCache
+                    });
                     triggerEvent('loadStarted');
-                    ongoingRequestPromise = populateLocalCache().then(function(retrievedItemCount){
+                    ongoingRequestPromise = populateLocalCache().then(function(){
+                        return chainer();
+                    }).then(function(retrievedItemCount){
                         // TODO: control item count and get more if needed, stop on zero.
                         // get and remove items from the local cache, starting from the beginning 
                         var items = localCache.splice(0, numberOfItems);
@@ -208,7 +216,20 @@ var QLM = (function($){
             triggerEvent = function(event){
                 var eventName = config.event.namespace + '.' + config.event.names[event];
                 $(document).trigger(eventName);
-            };
+            },
+            // TODO: extract this to its own module
+            createPromiseChainer = function(options){
+                return function chainer(){
+                    if(options.predicate()){
+                        var promise =  options.promiseFn();
+                        return promise.then(chainer);
+                    }else{
+                        var result =  new $.Deferred();
+                        result.resolve();
+                        return result;
+                    }
+                }
+            };            
         return {
             get: get,
             __getURL: getURL,

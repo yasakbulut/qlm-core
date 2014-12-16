@@ -142,6 +142,44 @@ describe('QLM getting-related functionality', function() {
       qlm.get(10);
     });
   });
+  it('issues sequential requests if returned item count is less than the item deficit', function(done){
+
+    var qlm = new QLM({
+      serviceURL: serviceURL,
+      lowItemThreshold: 1,
+      paginator: {
+        state: {
+          count: 5
+        }
+      }
+    });
+    qlm.get(23).then(function(items){
+      expect(items.length).toBe(23);
+      expect(qlm.__localCache.length).toBe(2);
+    }).always(done);
+  });
+
+  it('issues sequential requests if returned item count is less than the item deficit', function(done){
+
+    var qlm = new QLM({
+      serviceURL: serviceURL,
+      lowItemThreshold: 1,
+      paginator: {
+        state: {
+          count: 5
+        }
+      }
+    });
+    qlm.get(23).then(function(items){
+      expect(items.length).toBe(23);
+      expect(qlm.__localCache.length).toBe(2);
+    }).then(function(){
+      return qlm.get(4);
+    }).then(function(items){
+      expect(items.length).toBe(4);
+      expect(qlm.__localCache.length).toBe(3);
+    }).always(done);
+  });
 
 
   function setupMockjax(itemCount){
@@ -158,8 +196,8 @@ describe('QLM getting-related functionality', function() {
         var start = parseInt(settings.urlParams.start);
         var count = parseInt(settings.urlParams.count);
         this.responseText = {
-          exhausted: start > items.length,
-          items: items.slice(start, Math.min(start+count, items.length-1))
+          exhausted: start+count > items.length,
+          items: items.slice(start, start+count)
         };
        } 
      });
