@@ -155,7 +155,7 @@ var QLM = (function($){
 
             // Issues a GET request to the server, to populate the local cache.
             populateLocalCache = function(){
-                return $.ajax({
+                ongoingRequestPromise = $.ajax({
                     url: getURL(config.queryParameters, paginator.state),
                     type: "GET"
                 }).then(function(response){
@@ -182,6 +182,7 @@ var QLM = (function($){
                     ongoingRequestPromise = null;
                     return error;
                 });
+                return ongoingRequestPromise;
             },
 
             // Constructs an URL from the current state, i.e. query parameters and the pagination state.
@@ -250,8 +251,9 @@ var QLM = (function($){
                     // trigger the load started event.
                     triggerEvent('loadStarted');
 
-                    // populate the local cache, issuing a request to the server
-                    ongoingRequestPromise = populateLocalCache().then(function(){
+                    // populate the local cache, issuing a request to the server, and return
+                    // the promise to allow attaching of then() calls
+                    return populateLocalCache().then(function(){
                         // get more items if needed
                         return chainer();
                     }).then(function(retrievedItemCount){
@@ -267,8 +269,6 @@ var QLM = (function($){
                         triggerEvent('error');
                     });
 
-                    // we'll return the current promise to allow attaching of then() calls 
-                    return ongoingRequestPromise;
                 }
 
                 // if we have enough items in the local cache 
