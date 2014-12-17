@@ -18,7 +18,9 @@
 // qlm.get(10).then(function(items){
 //   // do something with the items here    
 // });
-// // This will trigger qlm.loadStarted and qlm.loadFinished events.
+// // This will trigger qlm.loadStarted 
+// // and qlm.loadFinished events.
+// ```
 
 var QLM = (function($){
     return function(customConfig){
@@ -288,9 +290,28 @@ var QLM = (function($){
                         return result;
                     }
                 };
-            };            
+            };
+
+        // ## Public API
         return {
+
+            // ### get(number): Promise(Object[])
+
+            // Returns a promise which resolves with a list of objects. The number of
+            // objects returned is less than (if there is not enough items on the server)
+            // or equal to (in the normal case) the input parameter.
             get: get,
+
+            // ### setParameter(key, value): void
+
+            // Sets a query parameter to use in the next query to the server
+            setParameter: setParameter,
+
+            // ### getParameter(value): String / Number / Array
+
+            // Gets the value of a query parameter
+            getParameter: getParameter,
+
             __getURL: getURL,
             __localCache: localCache
         };
