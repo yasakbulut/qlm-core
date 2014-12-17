@@ -199,16 +199,6 @@ var QLM = (function($){
                 return config.serviceURL + '?' + queryParameters.join('&');
             },
 
-            // Sets a query parameter to be used in the next request
-            setParameter = function(parameter, value){
-                config.parameterState[parameter] = value;
-            },
-
-            // Gets the value of a query parameter
-            getParameter = function(parameter){
-                return config.parameterState[parameter];
-            },
-
             // Returns an array containing the specified number of items. The size of the returned
             // list may be less than `numberOfItems` if not enough items exist.
             get = function(numberOfItems){
@@ -301,17 +291,6 @@ var QLM = (function($){
             // objects returned is less than (if there is not enough items on the server)
             // or equal to (in the normal case) the input parameter.
             get: get,
-
-            // ### setParameter(key, value): void
-
-            // Sets a query parameter to use in the next query to the server
-            setParameter: setParameter,
-
-            // ### getParameter(value): String / Number / Array
-
-            // Gets the value of a query parameter
-            getParameter: getParameter,
-
             __getURL: getURL,
             __localCache: localCache
         };
