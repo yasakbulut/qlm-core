@@ -50,6 +50,35 @@ describe('QLM getting-related functionality', function() {
   
   });
 
+  it('calls the endpoint with the correct URL', function(done){
+    var qlm = new QLM({
+      serviceURL: serviceURL,
+      lowItemThreshold: 50,
+      paginator:{
+        state: {
+          count: 10,
+        }
+      },
+      queryParameters:{
+        category: 1,
+        search: 'music'
+      }
+    });
+
+    qlm.get(5).then(function(){
+      expect(
+          $.mockjax.mockedAjaxCalls().filter(function(c){
+            return c.url.match('start=0') &&
+              c.url.match('count=10') &&
+              c.url.match('category=1') &&
+              c.url.match('search=music')
+        }).length
+      ).toBe(1);
+      done();
+    });
+
+  });
+
   it('calls the endpoint when low on items', function(done) {
   
     var qlm = new QLM({
