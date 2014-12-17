@@ -20,24 +20,6 @@
 // });
 // // This will trigger qlm.loadStarted and qlm.loadFinished events.
 
-// * `serviceURL`: The only required parameter. Contains the URL to the JSON endpoint for the items.
-// * `lowItemThreshold`: When the item count is less than this value, a background request will be issued to load more items. Default: 20
-// * `parameterState`: A set of key/value pairs to pass to the service as query parameters. Defaults to `start: 0` and `count: 20`
-// * `responseItemExtractor`: A function that transforms the AJAX response from `serviceURL` to an array of items. A default implementation is provided, and it just returns the `items` property in the response.
-// * `fieldNames`: A set of key field names used to construct URLS.
-//   * `start`: name for the start parameter, used to indicate the index of the first element to return from the service. Defaults to: `start`
-//   * `count`: name for the count parameter, used to indicate the number of items to return from the service. Defaults to: `count`
-// * `event`: a configuration object for the events emitted by this component
-//   * `namespace`: the prefix for all the events emitted.
-//   * `names`
-//     * `loadStarted`: the name for the load started event. Useful for displaying a loading icon. Defaults to 'loadStarted'.
-//     * `loadFinished`: the name for the load finished event. Useful for hiding a loading icon. Defaults to 'loadFinished'.
-//     * `error`: the name for the error event. Triggered on a server error. Defaults to 'error'.
-//     * `exhausted`: the name for the exhaustion event. Triggered when there are no more items even on the server. Defaults to 'exhausted'.
-
-
-
-
 var QLM = (function($){
     return function(customConfig){
         "use strict";
