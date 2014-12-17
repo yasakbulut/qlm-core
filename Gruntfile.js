@@ -25,6 +25,14 @@ module.exports = function(grunt) {
         enabled: true,
         success: true // whether successful grunt executions should be notified automatically
       }
+    },
+    docco: {
+      debug: {
+        src: ['src/**/*.js'],
+        options: {
+          output: 'docs/'
+        }
+      }
     }
   });
 
@@ -33,6 +41,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-notify');
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-docco');
 
   // Default task(s).
   var buildTasks = ['jshint',  'karma', 'uglify'];
